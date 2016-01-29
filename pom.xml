@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>sample</groupId>
-	<artifactId>spring-security-saml2-okta</artifactId>
+	<artifactId>okta</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 

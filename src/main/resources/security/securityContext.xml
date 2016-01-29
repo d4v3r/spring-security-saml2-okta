@@ -229,92 +229,16 @@
 	<bean id="webSSOprofileConsumer"
 		class="org.springframework.security.saml.websso.WebSSOProfileConsumerImpl" />
 
-	<!-- SAML 2.0 Holder-of-Key WebSSO Assertion Consumer -->
-	<bean id="hokWebSSOprofileConsumer"
-		class="org.springframework.security.saml.websso.WebSSOProfileConsumerHoKImpl" />
 
-	<!-- SAML 2.0 Web SSO profile -->
-	<bean id="webSSOprofile"
-		class="org.springframework.security.saml.websso.WebSSOProfileImpl" />
 
-	<!-- SAML 2.0 Holder-of-Key Web SSO profile -->
-	<bean id="hokWebSSOProfile"
-		class="org.springframework.security.saml.websso.WebSSOProfileConsumerHoKImpl" />
 
-	<!-- SAML 2.0 ECP profile -->
-	<bean id="ecpprofile"
-		class="org.springframework.security.saml.websso.WebSSOProfileECPImpl" />
 
-	<!-- SAML 2.0 Logout Profile -->
-	<bean id="logoutprofile"
-		class="org.springframework.security.saml.websso.SingleLogoutProfileImpl" />
 
-	<!-- Bindings, encoders and decoders used for creating and parsing messages -->
-	<bean id="postBinding"
-		class="org.springframework.security.saml.processor.HTTPPostBinding">
-		<constructor-arg ref="parserPool" />
-		<constructor-arg ref="velocityEngine" />
-	</bean>
 
-	<bean id="redirectBinding"
-		class="org.springframework.security.saml.processor.HTTPRedirectDeflateBinding">
-		<constructor-arg ref="parserPool" />
-	</bean>
 
-	<bean id="artifactBinding"
-		class="org.springframework.security.saml.processor.HTTPArtifactBinding">
-		<constructor-arg ref="parserPool" />
-		<constructor-arg ref="velocityEngine" />
-		<constructor-arg>
-			<bean
-				class="org.springframework.security.saml.websso.ArtifactResolutionProfileImpl">
-				<constructor-arg>
-					<bean class="org.apache.commons.httpclient.HttpClient">
-						<constructor-arg>
-							<bean
-								class="org.apache.commons.httpclient.MultiThreadedHttpConnectionManager" />
-						</constructor-arg>
-					</bean>
-				</constructor-arg>
-				<property name="processor">
-					<bean
-						class="org.springframework.security.saml.processor.SAMLProcessorImpl">
-						<constructor-arg ref="soapBinding" />
-					</bean>
-				</property>
-			</bean>
-		</constructor-arg>
-	</bean>
 
-	<bean id="soapBinding"
-		class="org.springframework.security.saml.processor.HTTPSOAP11Binding">
-		<constructor-arg ref="parserPool" />
-	</bean>
 
-	<bean id="paosBinding"
-		class="org.springframework.security.saml.processor.HTTPPAOS11Binding">
-		<constructor-arg ref="parserPool" />
-	</bean>
 
-	<!-- Initialization of OpenSAML library -->
-	<bean class="org.springframework.security.saml.SAMLBootstrap" />
 
-	<!-- Initialization of the velocity engine -->
-	<bean id="velocityEngine" class="org.springframework.security.saml.util.VelocityFactory"
-		factory-method="getEngine" />
-
-	<!-- XML parser pool needed for OpenSAML parsing -->
-	<bean id="parserPool" class="org.opensaml.xml.parse.StaticBasicParserPool"
-		init-method="initialize">
-		<property name="builderFeatures">
-			<map>
-				<entry key="http://apache.org/xml/features/dom/defer-node-expansion"
-					value="false" />
-			</map>
-		</property>
-	</bean>
-
-	<bean id="parserPoolHolder"
-		class="org.springframework.security.saml.parser.ParserPoolHolder" />
 
 </beans>
