@@ -3,12 +3,18 @@ package okta.mvc;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Timer;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.velocity.app.VelocityEngine;
+import org.opensaml.saml2.metadata.provider.HTTPMetadataProvider;
+import org.opensaml.saml2.metadata.provider.MetadataProvider;
+import org.opensaml.saml2.metadata.provider.MetadataProviderException;
 import org.opensaml.xml.parse.ParserPool;
 import org.opensaml.xml.parse.StaticBasicParserPool;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,6 +27,10 @@ import org.springframework.security.saml.SAMLLogoutFilter;
 import org.springframework.security.saml.SAMLLogoutProcessingFilter;
 import org.springframework.security.saml.SAMLProcessingFilter;
 import org.springframework.security.saml.SAMLWebSSOHoKProcessingFilter;
+import org.springframework.security.saml.context.SAMLContextProviderImpl;
+import org.springframework.security.saml.metadata.CachingMetadataManager;
+import org.springframework.security.saml.metadata.ExtendedMetadata;
+import org.springframework.security.saml.metadata.ExtendedMetadataDelegate;
 import org.springframework.security.saml.parser.ParserPoolHolder;
 import org.springframework.security.saml.processor.HTTPArtifactBinding;
 import org.springframework.security.saml.processor.HTTPPAOS11Binding;
@@ -232,7 +242,50 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         //samlAuthenticationProvider.setUserDetails(samlUserDetailsServiceImpl);
         //samlAuthenticationProvider.setForcePrincipalAsString(false);
         return samlAuthenticationProvider;
-    }    
+    }
+    
+    // Provider of default SAML Context
+    @Bean
+    public SAMLContextProviderImpl contextProvider() {
+        return new SAMLContextProviderImpl();
+    }
+    
+    // IDP Metadata configuration - paths to metadata of IDPs in circle of trust
+    // is here
+    // Do no forget to call iniitalize method on providers
+    @Bean
+    @Qualifier("metadata")
+    public CachingMetadataManager metadata() throws MetadataProviderException {
+        List<MetadataProvider> providers = new ArrayList<MetadataProvider>();
+        providers.add(ssoCircleExtendedMetadataProvider());
+        return new CachingMetadataManager(providers);
+    }
+    
+	@Bean
+	@Qualifier("idp-ssocircle")
+	public ExtendedMetadataDelegate ssoCircleExtendedMetadataProvider()
+			throws MetadataProviderException {
+//		String idpSSOCircleMetadataURL = "https://idp.ssocircle.com/idp-meta.xml";
+		String idpSSOCircleMetadataURL = "https://dev-771949.oktapreview.com/app/exk5nujgjzgEaB9BB0h7/sso/saml/metadata";
+		Timer backgroundTaskTimer = new Timer(true);
+		HTTPMetadataProvider httpMetadataProvider = new HTTPMetadataProvider(
+				backgroundTaskTimer, httpClient(), idpSSOCircleMetadataURL);
+		httpMetadataProvider.setParserPool(parserPool());
+		ExtendedMetadataDelegate extendedMetadataDelegate = 
+				new ExtendedMetadataDelegate(httpMetadataProvider, extendedMetadata());
+		extendedMetadataDelegate.setMetadataTrustCheck(true);
+		extendedMetadataDelegate.setMetadataRequireSignature(false);
+		return extendedMetadataDelegate;
+	}
+
+	   // Setup advanced info about metadata
+    @Bean
+    public ExtendedMetadata extendedMetadata() {
+    	ExtendedMetadata extendedMetadata = new ExtendedMetadata();
+    	extendedMetadata.setIdpDiscoveryEnabled(true); 
+    	extendedMetadata.setSignMetadata(false);
+    	return extendedMetadata;
+    }
     
 }
 
