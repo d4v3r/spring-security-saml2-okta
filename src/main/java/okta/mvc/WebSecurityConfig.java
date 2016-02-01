@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.saml.SAMLBootstrap;
+import org.springframework.security.saml.SAMLLogoutFilter;
 import org.springframework.security.saml.SAMLLogoutProcessingFilter;
 import org.springframework.security.saml.parser.ParserPoolHolder;
 import org.springframework.security.saml.processor.HTTPArtifactBinding;
@@ -34,6 +35,7 @@ import org.springframework.security.saml.websso.WebSSOProfileConsumerHoKImpl;
 import org.springframework.security.saml.websso.WebSSOProfileConsumerImpl;
 import org.springframework.security.saml.websso.WebSSOProfileECPImpl;
 import org.springframework.security.saml.websso.WebSSOProfileImpl;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 
@@ -174,7 +176,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public SecurityContextLogoutHandler logoutHandler() {
         SecurityContextLogoutHandler logoutHandler = 
         		new SecurityContextLogoutHandler();
-        logoutHandler.setInvalidateHttpSession(false);
+        logoutHandler.setInvalidateHttpSession(true);
         //logoutHandler.setClearAuthentication(true);
         return logoutHandler;
     }
@@ -187,5 +189,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return successLogoutHandler;
     }
     
-
+    // Overrides default logout processing filter with the one processing SAML
+    // messages
+    @Bean
+    public SAMLLogoutFilter samlLogoutFilter() {
+        return new SAMLLogoutFilter(successLogoutHandler(),
+                new LogoutHandler[] { logoutHandler() },
+                new LogoutHandler[] { logoutHandler() });
+    }
+    
+    
+    
 }
+
+//migration notes:
+
+//         logoutHandler.setInvalidateHttpSession(true); as false
